@@ -1,3 +1,18 @@
+---
+title: Voice Cloning PoC
+emoji: 🎙️
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+sdk_version: 4.44.1
+app_file: app.py
+pinned: false
+short_description: Record your voice, type a sentence, hear it in your voice.
+---
+
+<!-- The block above is Hugging Face Spaces config (read from this README's
+     frontmatter); GitHub just shows it as text. To deploy, see DEPLOY_HF_SPACES.md. -->
+
 # Voice Cloning PoC
 
 A tiny proof-of-concept: **record your voice, type a sentence, and hear that
