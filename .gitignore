@@ -1,0 +1,14 @@
+# Generated + recorded audio
+voices/
+outputs/
+*.wav
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Model caches
+.cache/

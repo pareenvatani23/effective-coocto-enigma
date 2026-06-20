@@ -1,0 +1,14 @@
+# Core PoC dependencies
+# Zero-shot voice cloning engine (MIT-licensed, clones from a few seconds of audio)
+chatterbox-tts>=0.1.1
+
+# Web UI: mic recording + text input + audio playback, no custom frontend
+gradio>=4.44.0
+
+# Audio I/O
+soundfile>=0.12.1
+
+# torch / torchaudio are pulled in by chatterbox-tts; pin loosely here for clarity.
+# For a GPU machine, install the CUDA build of torch from https://pytorch.org first.
+torch>=2.0.0
+torchaudio>=2.0.0
