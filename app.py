@@ -35,7 +35,13 @@ def save_reference(recorded_path: str | None) -> str:
     return dest
 
 
-def speak(recorded_path: str | None, text: str):
+def speak(
+    recorded_path: str | None,
+    text: str,
+    exaggeration: float,
+    cfg_weight: float,
+    temperature: float,
+):
     """Clone the recorded voice and synthesize ``text`` in it."""
     if not recorded_path:
         raise gr.Error("Record or upload a reference voice clip first.")
@@ -44,7 +50,13 @@ def speak(recorded_path: str | None, text: str):
 
     reference = save_reference(recorded_path)
     try:
-        out_path = tts_engine.synthesize(text, reference)
+        out_path = tts_engine.synthesize(
+            text,
+            reference,
+            exaggeration=exaggeration,
+            cfg_weight=cfg_weight,
+            temperature=temperature,
+        )
     except Exception as exc:  # surface engine errors in the UI
         raise gr.Error(f"Synthesis failed: {exc}")
     return out_path
@@ -54,16 +66,20 @@ def build_ui() -> gr.Blocks:
     with gr.Blocks(title="Voice Cloning PoC") as demo:
         gr.Markdown(
             "# 🎙️ Voice Cloning PoC\n"
-            "1. **Record** ~6–10s of your voice (or upload a clip).\n"
+            "1. **Record** a reference clip (or upload one).\n"
             "2. **Type** a sentence.\n"
             "3. Click **Speak** to hear it in your voice.\n\n"
+            "**For the best match:** record **15–20s** in a **quiet** room, "
+            "speak naturally at a steady volume, and avoid background noise, "
+            "music, or echo. Clean reference audio matters more than anything "
+            "else here.\n\n"
             "_Only clone voices you have permission to use._"
         )
         with gr.Row():
             reference = gr.Audio(
                 sources=["microphone", "upload"],
                 type="filepath",
-                label="Your voice (reference clip)",
+                label="Your voice (reference clip, ~15–20s, quiet room)",
             )
             with gr.Column():
                 text = gr.Textbox(
@@ -72,9 +88,34 @@ def build_ui() -> gr.Blocks:
                     lines=3,
                 )
                 speak_btn = gr.Button("Speak", variant="primary")
+
+        with gr.Accordion("Voice match settings (tune for closer similarity)", open=False):
+            gr.Markdown(
+                "Lower **exaggeration** and lower **guidance** generally sound "
+                "*more like the real person*; raise them for more expressive, "
+                "dramatic delivery. Lower **temperature** is steadier and more "
+                "consistent. If a result sounds off, regenerate — sampling varies."
+            )
+            exaggeration = gr.Slider(
+                0.0, 1.0, value=0.4, step=0.05,
+                label="Exaggeration (lower = closer to natural delivery)",
+            )
+            cfg_weight = gr.Slider(
+                0.0, 1.0, value=0.3, step=0.05,
+                label="Guidance / CFG weight (lower = tracks your voice more faithfully)",
+            )
+            temperature = gr.Slider(
+                0.1, 1.2, value=0.7, step=0.05,
+                label="Temperature (lower = more stable/consistent)",
+            )
+
         output = gr.Audio(label="Generated speech", autoplay=True)
 
-        speak_btn.click(fn=speak, inputs=[reference, text], outputs=output)
+        speak_btn.click(
+            fn=speak,
+            inputs=[reference, text, exaggeration, cfg_weight, temperature],
+            outputs=output,
+        )
 
     return demo
 

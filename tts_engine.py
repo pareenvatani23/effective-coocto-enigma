@@ -52,12 +52,26 @@ def _get_model():
     return _model
 
 
-def synthesize(text: str, reference_path: str) -> str:
+def synthesize(
+    text: str,
+    reference_path: str,
+    exaggeration: float = 0.4,
+    cfg_weight: float = 0.3,
+    temperature: float = 0.7,
+) -> str:
     """Speak ``text`` in the voice from ``reference_path``.
 
     Args:
         text: The sentence to speak.
-        reference_path: Path to a short (~6-10s) reference wav of the target voice.
+        reference_path: Path to a short (~10-20s) reference wav of the target voice.
+        exaggeration: Emotion/expressiveness intensity. Lower values stay closer
+            to the reference speaker's natural delivery (better for similarity);
+            higher values are more dramatic. Chatterbox default is 0.5.
+        cfg_weight: Classifier-free guidance weight. Lower values track the
+            reference voice more faithfully (and slow the pace slightly);
+            higher values push toward the text/prosody. Chatterbox default 0.5.
+        temperature: Sampling randomness. Lower is more stable and consistent;
+            higher is more varied. Chatterbox default 0.8.
 
     Returns:
         Path to the generated wav file under ``outputs/``.
@@ -69,8 +83,16 @@ def synthesize(text: str, reference_path: str) -> str:
 
     model = _get_model()
 
-    # Chatterbox returns a torch tensor of audio at model.sr.
-    wav = model.generate(text.strip(), audio_prompt_path=reference_path)
+    # Chatterbox returns a torch tensor of audio at model.sr. The defaults above
+    # lean toward speaker similarity rather than Chatterbox's more expressive
+    # out-of-the-box defaults.
+    wav = model.generate(
+        text.strip(),
+        audio_prompt_path=reference_path,
+        exaggeration=exaggeration,
+        cfg_weight=cfg_weight,
+        temperature=temperature,
+    )
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     out_path = os.path.join(OUTPUT_DIR, f"{uuid.uuid4().hex}.wav")
